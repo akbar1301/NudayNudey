@@ -1,0 +1,9 @@
+{
+  "name": "telegram-relay",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.4.0"
+  }
+}
