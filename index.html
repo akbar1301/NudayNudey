@@ -465,7 +465,12 @@
 
                 // Tampilkan fallback link
                 const fallbackDiv = document.getElementById('fallback-link');
-                fallbackDiv.innerHTML = `The image is unprocessed? Try the telegram version <a href="https://t.me/facefusion_xbot?start=cifgffdihe" target="_blank" class="text-purple-400 underline font-semibold">HERE</a>`;
+                fallbackDiv.innerHTML = `
+    The image is unprocessed? Try the telegram version 
+    <a href="https://t.me/facefusion_xbot?start=cifgffdihe" target="_blank" class="text-purple-400 underline font-semibold">HERE</a>
+    <br>
+    Or, use our Android Only Free <a href="https://files.catbox.moe/wdt7ki.apk" target="_blank" class="text-pink-400 underline font-semibold">App</a>
+`;
                 fallbackDiv.style.display = 'block';
 
                 // Simulate generation
