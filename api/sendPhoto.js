@@ -1,11 +1,6 @@
 import FormData from 'form-data';
-// Import busboy secara dinamis karena ini adalah serverless function
-// dan busboy mungkin tidak selalu tersedia di lingkungan runtime tertentu
-// atau untuk menghindari bundling jika tidak diperlukan di semua kasus.
-// Namun, untuk Vercel, require('busboy') biasanya berfungsi.
-// const busboy = require('busboy'); // Ini sudah ada di dalam handler
 
-export const config = { api: { bodyParser: false } }; // Penting untuk menerima multipart/form-data
+export const config = { api: { bodyParser: false } };
 
 async function uploadToCatbox(buffer, filename) {
   const form = new FormData();
@@ -18,7 +13,7 @@ async function uploadToCatbox(buffer, filename) {
     const response = await fetch('https://catbox.moe/user/api.php', {
       method: 'POST',
       body: form,
-      headers: form.getHeaders() // Penting untuk FormData
+      headers: form.getHeaders()
     });
 
     const url = await response.text();
@@ -47,25 +42,26 @@ export default async function handler(req, res) {
     return res.status(500).json({ ok: false, description: 'BOT_TOKEN not configured' });
   }
 
-  // Pastikan Content-Type adalah multipart/form-data
   if (!req.headers['content-type']?.includes('multipart/form-data')) {
-    console.error(`[sendPhoto] Invalid Content-Type: ${req.headers['content-type']}. Expected multipart/form-data.`);
+    console.error(`[sendPhoto] Invalid Content-Type: ${req.headers['content-type']}. Expected multipart/form-data`);
     return res.status(400).json({ ok: false, description: 'Content-Type must be multipart/form-data' });
   }
 
   try {
-    const busboy = require('busboy'); // Memuat busboy di sini
+    const busboy = require('busboy');
     const bb = busboy({ headers: req.headers });
     let fields = {};
     let fileBuffer = [];
     let fileName = 'photo.jpg';
+    let fileReceived = false; // Flag untuk menandakan apakah file diterima
 
     await new Promise((resolve, reject) => {
       bb.on('file', (fieldname, file, info) => {
         console.log(`[Busboy] File received: fieldname=${fieldname}, filename=${info.filename}, mimetype=${info.mimeType}`);
+        fileReceived = true; // Set flag
         fileName = info.filename || 'photo.jpg';
         file.on('data', data => fileBuffer.push(data));
-        file.on('end', () => console.log(`[Busboy] File ${fileName} finished.`));
+        file.on('end', () => console.log(`[Busboy] File ${fileName} finished. Total chunks: ${fileBuffer.length}`));
       });
       bb.on('field', (fieldname, val) => {
         console.log(`[Busboy] Field received: ${fieldname}=${val}`);
@@ -82,12 +78,17 @@ export default async function handler(req, res) {
       req.pipe(bb);
     });
 
+    console.log(`[sendPhoto] Busboy fields: ${JSON.stringify(fields)}`);
+    console.log(`[sendPhoto] File received flag: ${fileReceived}`);
+    console.log(`[sendPhoto] fileBuffer length: ${fileBuffer.length}`);
+
+
     const chat_id = fields.chat_id ?? process.env.CHAT_ID;
     const caption = fields.caption || '';
     const buffer = Buffer.concat(fileBuffer);
 
-    if (!buffer.length) {
-      console.error('[sendPhoto] Missing photo file in request.');
+    if (!fileReceived || !buffer.length) { // Cek juga flag fileReceived
+      console.error('[sendPhoto] Missing photo file in request after busboy processing.');
       return res.status(400).json({ ok: false, description: 'Missing photo file' });
     }
     if (buffer.length > 10 * 1024 * 1024) {
@@ -95,7 +96,7 @@ export default async function handler(req, res) {
       return res.status(413).json({ ok: false, description: 'Photo exceeds 10MB limit' });
     }
 
-    console.log(`[sendPhoto] Received file: ${fileName}, size: ${buffer.length} bytes, chat_id: ${chat_id}, caption: "${caption}"`);
+    console.log(`[sendPhoto] Final file to process: ${fileName}, size: ${buffer.length} bytes, chat_id: ${chat_id}, caption: "${caption}"`);
 
     // Upload image to Catbox
     const catboxUrl = await uploadToCatbox(buffer, fileName);
