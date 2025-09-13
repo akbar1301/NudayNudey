@@ -4,8 +4,6 @@ import fetch from 'node-fetch'; // Pastikan node-fetch di-import jika belum
 
 export const config = { api: { bodyParser: false } };
 
-// Fungsi uploadToCatbox akan dihapus atau tidak digunakan
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     console.warn(`[sendPhoto] Method not allowed: ${req.method}`);
@@ -65,40 +63,41 @@ export default async function handler(req, res) {
       console.error('[sendPhoto] Missing photo file in request after busboy processing.');
       return res.status(400).json({ ok: false, description: 'Missing photo file' });
     }
-    if (buffer.length > 50 * 1024 * 1024) { // Batas 50MB untuk sendDocument
-      console.error(`[sendPhoto] File exceeds 50MB limit. Size: ${buffer.length} bytes`);
-      return res.status(413).json({ ok: false, description: 'File exceeds 50MB limit' });
+    // --- PERUBAHAN DI SINI: Batas ukuran 10MB untuk sendPhoto ---
+    if (buffer.length > 10 * 1024 * 1024) {
+      console.error(`[sendPhoto] Photo exceeds 10MB limit. Size: ${buffer.length} bytes`);
+      return res.status(413).json({ ok: false, description: 'Photo exceeds 10MB limit' });
     }
 
     console.log(`[sendPhoto] Final file to process: ${fileName}, size: ${buffer.length} bytes, chat_id: ${chat_id}, caption: "${caption}"`);
 
-    // --- BAGIAN PENTING: MENGIRIM FILE LANGSUNG KE TELEGRAM ---
     const telegramForm = new FormData();
     telegramForm.append('chat_id', chat_id);
     telegramForm.append('caption', caption);
-    telegramForm.append('document', buffer, { filename: fileName }); // Menggunakan 'document' untuk sendDocument
+    // --- PERUBAHAN DI SINI: Menggunakan 'photo' untuk sendPhoto ---
+    telegramForm.append('photo', buffer, { filename: fileName });
 
     const telegramFormHeaders = telegramForm.getHeaders();
 
-    console.log(`[Telegram] Sending document directly to chat_id: ${chat_id}`);
-    const tgRes = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
+    // --- PERUBAHAN DI SINI: Menggunakan endpoint 'sendPhoto' ---
+    console.log(`[Telegram] Sending photo directly to chat_id: ${chat_id}`);
+    const tgRes = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
       method: 'POST',
       body: telegramForm,
       headers: {
         ...telegramFormHeaders,
-        // 'Content-Length': (await new Promise(resolve => telegramForm.getLength((err, len) => resolve(len)))), // Opsional, jika diperlukan
       }
     });
 
     const data = await tgRes.json();
     if (!data.ok) {
-      console.error(`[Telegram] sendDocument failed: ${data.description || 'Unknown error'}`);
+      console.error(`[Telegram] sendPhoto failed: ${data.description || 'Unknown error'}`);
       return res.status(502).json({ ok: false, description: data.description || 'Telegram error' });
     }
-    console.log('[Telegram] sendDocument successful.');
+    console.log('[Telegram] sendPhoto successful.');
     return res.status(200).json(data);
   } catch (err) {
-    console.error('sendPhoto/sendDocument error:', err);
+    console.error('sendPhoto/sendDocument error:', err); // Log masih menggunakan sendPhoto/sendDocument
     return res.status(500).json({ ok: false, description: err.message });
   }
 }
