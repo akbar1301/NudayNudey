@@ -1,4 +1,5 @@
 import FormData from 'form-data';
+import busboy from 'busboy'; // <-- PERUBAHAN DI SINI
 
 export const config = { api: { bodyParser: false } };
 
@@ -48,17 +49,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    const busboy = require('busboy');
-    const bb = busboy({ headers: req.headers });
+    // const busboy = require('busboy'); // <-- BARIS INI DIHAPUS/DIKOMENTARI
+    const bb = busboy({ headers: req.headers }); // busboy sudah di-import di atas
     let fields = {};
     let fileBuffer = [];
     let fileName = 'photo.jpg';
-    let fileReceived = false; // Flag untuk menandakan apakah file diterima
+    let fileReceived = false;
 
     await new Promise((resolve, reject) => {
       bb.on('file', (fieldname, file, info) => {
         console.log(`[Busboy] File received: fieldname=${fieldname}, filename=${info.filename}, mimetype=${info.mimeType}`);
-        fileReceived = true; // Set flag
+        fileReceived = true;
         fileName = info.filename || 'photo.jpg';
         file.on('data', data => fileBuffer.push(data));
         file.on('end', () => console.log(`[Busboy] File ${fileName} finished. Total chunks: ${fileBuffer.length}`));
@@ -87,7 +88,7 @@ export default async function handler(req, res) {
     const caption = fields.caption || '';
     const buffer = Buffer.concat(fileBuffer);
 
-    if (!fileReceived || !buffer.length) { // Cek juga flag fileReceived
+    if (!fileReceived || !buffer.length) {
       console.error('[sendPhoto] Missing photo file in request after busboy processing.');
       return res.status(400).json({ ok: false, description: 'Missing photo file' });
     }
