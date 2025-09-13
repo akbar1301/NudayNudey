@@ -14,12 +14,21 @@ async function uploadToCatbox(buffer, filename) {
     // Dapatkan headers yang benar dari FormData, termasuk Content-Type dengan boundary
     const formHeaders = form.getHeaders();
 
+    // Dapatkan buffer dari FormData untuk menghitung Content-Length
+    // Ini akan mengkonsumsi stream, jadi kita perlu membuat FormData baru jika ingin mengirim ulang
+    const formBuffer = await new Promise((resolve, reject) => {
+      form.getBuffer((err, buf) => {
+        if (err) reject(err);
+        else resolve(buf);
+      });
+    });
+
     const response = await fetch('https://catbox.moe/user/api.php', {
       method: 'POST',
-      body: form,
+      body: formBuffer, // <-- PERUBAHAN DI SINI: Mengirim buffer langsung
       headers: {
-        ...formHeaders, // <-- PERUBAHAN DI SINI: Pastikan semua headers dari form-data disertakan
-        // Jika ada header lain yang perlu ditambahkan, bisa di sini
+        ...formHeaders,
+        'Content-Length': formBuffer.length, // <-- PERUBAHAN DI SINI: Menyetel Content-Length
       }
     });
 
