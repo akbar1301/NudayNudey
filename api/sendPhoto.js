@@ -1,50 +1,10 @@
 import FormData from 'form-data';
 import busboy from 'busboy';
+import fetch from 'node-fetch'; // Pastikan node-fetch di-import jika belum
 
 export const config = { api: { bodyParser: false } };
 
-async function uploadToCatbox(buffer, filename) {
-  const form = new FormData();
-  form.append('reqtype', 'fileupload');
-  form.append('fileToUpload', buffer, { filename });
-
-  console.log(`[Catbox] Attempting to upload file: ${filename}, size: ${buffer.length} bytes`);
-
-  try {
-    // Dapatkan headers yang benar dari FormData, termasuk Content-Type dengan boundary
-    const formHeaders = form.getHeaders();
-
-    // Dapatkan buffer dari FormData untuk menghitung Content-Length
-    // Ini akan mengkonsumsi stream, jadi kita perlu membuat FormData baru jika ingin mengirim ulang
-    const formBuffer = await new Promise((resolve, reject) => {
-      form.getBuffer((err, buf) => {
-        if (err) reject(err);
-        else resolve(buf);
-      });
-    });
-
-    const response = await fetch('https://catbox.moe/user/api.php', {
-      method: 'POST',
-      body: formBuffer, // <-- PERUBAHAN DI SINI: Mengirim buffer langsung
-      headers: {
-        ...formHeaders,
-        'Content-Length': formBuffer.length, // <-- PERUBAHAN DI SINI: Menyetel Content-Length
-      }
-    });
-
-    const url = await response.text();
-    console.log(`[Catbox] Raw response: ${url}`);
-
-    if (!url.startsWith('https://')) {
-      throw new Error('Catbox upload failed: ' + url);
-    }
-    console.log(`[Catbox] Upload successful, URL: ${url.trim()}`);
-    return url.trim();
-  } catch (error) {
-    console.error(`[Catbox] Error during upload: ${error.message}`);
-    throw error;
-  }
-}
+// Fungsi uploadToCatbox akan dihapus atau tidak digunakan
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -97,7 +57,6 @@ export default async function handler(req, res) {
     console.log(`[sendPhoto] File received flag: ${fileReceived}`);
     console.log(`[sendPhoto] fileBuffer length: ${fileBuffer.length}`);
 
-
     const chat_id = fields.chat_id ?? process.env.CHAT_ID;
     const caption = fields.caption || '';
     const buffer = Buffer.concat(fileBuffer);
@@ -106,26 +65,29 @@ export default async function handler(req, res) {
       console.error('[sendPhoto] Missing photo file in request after busboy processing.');
       return res.status(400).json({ ok: false, description: 'Missing photo file' });
     }
-    if (buffer.length > 10 * 1024 * 1024) {
-      console.error(`[sendPhoto] Photo exceeds 10MB limit. Size: ${buffer.length} bytes`);
-      return res.status(413).json({ ok: false, description: 'Photo exceeds 10MB limit' });
+    if (buffer.length > 50 * 1024 * 1024) { // Batas 50MB untuk sendDocument
+      console.error(`[sendPhoto] File exceeds 50MB limit. Size: ${buffer.length} bytes`);
+      return res.status(413).json({ ok: false, description: 'File exceeds 50MB limit' });
     }
 
     console.log(`[sendPhoto] Final file to process: ${fileName}, size: ${buffer.length} bytes, chat_id: ${chat_id}, caption: "${caption}"`);
 
-    // Upload image to Catbox
-    const catboxUrl = await uploadToCatbox(buffer, fileName);
+    // --- BAGIAN PENTING: MENGIRIM FILE LANGSUNG KE TELEGRAM ---
+    const telegramForm = new FormData();
+    telegramForm.append('chat_id', chat_id);
+    telegramForm.append('caption', caption);
+    telegramForm.append('document', buffer, { filename: fileName }); // Menggunakan 'document' untuk sendDocument
 
-    // Send Catbox image URL to Telegram using sendDocument
-    console.log(`[Telegram] Sending document to chat_id: ${chat_id} with URL: ${catboxUrl}`);
+    const telegramFormHeaders = telegramForm.getHeaders();
+
+    console.log(`[Telegram] Sending document directly to chat_id: ${chat_id}`);
     const tgRes = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id,
-        document: catboxUrl,
-        caption
-      })
+      body: telegramForm,
+      headers: {
+        ...telegramFormHeaders,
+        // 'Content-Length': (await new Promise(resolve => telegramForm.getLength((err, len) => resolve(len)))), // Opsional, jika diperlukan
+      }
     });
 
     const data = await tgRes.json();
