@@ -1,5 +1,5 @@
 import FormData from 'form-data';
-import busboy from 'busboy'; // <-- PERUBAHAN DI SINI
+import busboy from 'busboy';
 
 export const config = { api: { bodyParser: false } };
 
@@ -11,10 +11,16 @@ async function uploadToCatbox(buffer, filename) {
   console.log(`[Catbox] Attempting to upload file: ${filename}, size: ${buffer.length} bytes`);
 
   try {
+    // Dapatkan headers yang benar dari FormData, termasuk Content-Type dengan boundary
+    const formHeaders = form.getHeaders();
+
     const response = await fetch('https://catbox.moe/user/api.php', {
       method: 'POST',
       body: form,
-      headers: form.getHeaders()
+      headers: {
+        ...formHeaders, // <-- PERUBAHAN DI SINI: Pastikan semua headers dari form-data disertakan
+        // Jika ada header lain yang perlu ditambahkan, bisa di sini
+      }
     });
 
     const url = await response.text();
@@ -49,8 +55,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // const busboy = require('busboy'); // <-- BARIS INI DIHAPUS/DIKOMENTARI
-    const bb = busboy({ headers: req.headers }); // busboy sudah di-import di atas
+    const bb = busboy({ headers: req.headers });
     let fields = {};
     let fileBuffer = [];
     let fileName = 'photo.jpg';
